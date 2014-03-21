@@ -16,8 +16,6 @@ import java.io.*;
 
 class BadModeException extends Exception {}
 class BadShiftException extends Exception {}
-//class NoOfQuestionsException extends Exception {}
-//class BadAnswerKeyException extends Exception {}
 
 public class CaesarCipher
 {
