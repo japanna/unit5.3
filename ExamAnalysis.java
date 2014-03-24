@@ -111,6 +111,7 @@ public class ExamAnalysis
 					System.out.println("\nThe EXAM ANALYZER can only analyze between 1 - 100 lines of data.\nPlease check your input file and try again.\n"); 
 				}
 			}
+			initialInput.close();
 		}
 	
 		/**
@@ -177,6 +178,7 @@ public class ExamAnalysis
 					// 
 					analysisCounter++;	
 				}
+				studentAnalysis.close();
 			}
 			catch (FileNotFoundException e) {
 				System.out.println("\nTrying to print student analysis...\nCould not read file \"" + fileName + "\". Please try again.\n");
@@ -248,6 +250,7 @@ public class ExamAnalysis
 						((double)data[2]/(size))*100, ((double)data[3]/(size))*100, 
 					((double)data[4]/(size))*100, ((double)data[5]/(size))*100);
 				}
+				questionAnalysis.close();
 			}
 			catch (FileNotFoundException e) {
 				System.out.println("\nTrying to print question analysis...\nCould not read file \"" + fileName + "\". Please try again.\n");
