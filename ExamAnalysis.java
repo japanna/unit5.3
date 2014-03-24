@@ -4,7 +4,10 @@
  *  This program processes answers to multiple choice questions in an exam
  *
  *  @author:  Anna Ntenta, anna.ntenta@gmail.com
- *  @version: Last Modified ___, 2014
+ *  @version: Last Modified March 24, 2014
+ *	@throws: BadAnswerkeyException
+ *	@throws: NoOfQuestionsException
+ *
  */
 
 import java.util.*;
@@ -29,7 +32,6 @@ public class ExamAnalysis
 		// loop keeps asking until user provides correct input
 		while (retry) 
 			try {
-				retry  = false; // if given correct input, end the while loop
 				System.out.print("Please type the correct answers to the exam questions,\none right after the other: ");
 				
 				// get the correct answers to the questions and convert to uppercase
@@ -43,12 +45,11 @@ public class ExamAnalysis
 				{
 					if ("ABCDE".indexOf(answerKey.charAt(i)) < 0) throw new BadAnswerKeyException(); 
 				}
-					System.out.print("\nWhat is the name of the file containing each student's\nresponses to the " + noOfQuestions + " questions? ");
-					// get the name of the student answers file 
-					fileName = keyboard.next();
 
-				// print out student answers
-				studAnswers(fileName, answerKey);
+				// call method that prints out student answers
+				studAnswers(answerKey);
+
+				retry  = false; // if given correct input, end the while loop
 			}
 			catch(NoOfQuestionsException e) {
 				System.out.println("\nThe EXAM ANALYZER can only process exams with no more than 100 questions. Please try again.\n");
@@ -60,36 +61,67 @@ public class ExamAnalysis
 			}
 		}
 
-		public static void studAnswers(String fileName, String answerKey ) throws FileNotFoundException
+		/**
+	    * This method takes the answer key as provided by user and prints the students'
+	    * answers. It then calls the methods studAnalysis and questionAnalysis.
+	    *
+	    * @param   String  answerKey
+	    * @throws: BadDataException 	If the input file contains less than 1 
+	    *								or more than 100 entries
+	    * @throws: FileNotFoundException If input file can't be found/read
+	    */	
+		public static void studAnswers(String answerKey ) throws FileNotFoundException
 		{
-			try {
-				// construct a Scanner object to use for the printing of student answers
-				Scanner initialInput = new Scanner(new File(fileName)); // remember to handle exception
-				
-				// counter for the printing of student answers
-				int noOfStudents = 1;
-				// print each line in input file
-				while (initialInput.hasNextLine()) 
-				{
-					System.out.println("\nStudent #" + noOfStudents + "'s responses: " + initialInput.nextLine());
-					noOfStudents++;
-				}
-				if ((noOfStudents > 100) || (noOfStudents < 2)) {
+			// create a scanner object to read from the keyboard
+			Scanner keyboard = new Scanner (System.in); 
+
+			// set input file to null
+			Scanner initialInput = null;
+			// keep asking for the studen answers file until user provides readable file
+			while (initialInput == null) {
+				System.out.print("\nWhat is the name of the file containing each student's\nresponses to the " + answerKey.length() + " questions? ");
+				// get the name of the student answers file 
+				String fileName = keyboard.next();
+
+				try {
+					// construct a Scanner object to use for the printing of student answers
+					initialInput = new Scanner(new File(fileName)); // remember to handle exception
+					// counter for the printing of student answers
+					int noOfStudents = 1;
+					// print each line in input file
+					while (initialInput.hasNextLine()) 
+					{
+						System.out.println("\nStudent #" + noOfStudents + "'s responses: " + initialInput.nextLine());
+						noOfStudents++;
+					}
+					if ((noOfStudents > 100) || (noOfStudents < 2)) {
 					throw new BadDataException();
-				}		
-				else System.out.println("\nThank you for the data on the " + (noOfStudents - 1) + " students. Here's the analysis:\n");
+					}		
+					else System.out.println("\nThank you for the data on the " + (noOfStudents - 1) + " students. Here's the analysis:\n");
 				
-				// count number of correct/incorrect/blank answers per student and print
-				studAnalysis(fileName, answerKey);
-			}
-			catch(FileNotFoundException e) {
-				System.out.println("\nTrying to print analysis...\nCould not find file \"" + fileName + "\". Please try again.\n");
-			}
-			catch(BadDataException e) {
-				System.out.println("\nThe EXAM ANALYZER can only analyze between 1 - 100 lines of data.\nPlease check your input file and try again.\n"); 
+					// count number of correct/incorrect/blank answers per student and print
+					studAnalysis(fileName, answerKey);
+					// breakdown and print the number and percentages of A,B,C,D,E and Blank answers per question
+					questionAnalysis(fileName, answerKey);
+				}
+				catch(FileNotFoundException e) {
+					System.out.println("\nCould not find file \"" + fileName + "\". Please try again.\n");
+				}
+				catch(BadDataException e) {
+					System.out.println("\nThe EXAM ANALYZER can only analyze between 1 - 100 lines of data.\nPlease check your input file and try again.\n"); 
+				}
 			}
 		}
 	
+		/**
+	    * This method takes the answer key and file of student answers 
+	    * as provided by user and prints an analysis of each student's
+	    * answers. 
+	    *
+	    * @param   String fileName
+	    * @param   String  answerKey
+	    * @throws: FileNotFoundException If input file can't be read
+	    */	
 		public static void studAnalysis(String fileName, String answerKey ) throws FileNotFoundException
 		{
 			try {
@@ -138,23 +170,26 @@ public class ExamAnalysis
 					}
 					// in case there are blank answers at the end of the string, add the 
 					// difference between the length of the answer key and the answer string 
-					// to the 'blank' counter, but not if the student has answered more questions
-					// than there are .
-					
-					else blank += noOfQuestions - questionsAnswered;
+					// to the 'blank' counter
+					blank += noOfQuestions - questionsAnswered;
 					// print student's results
 					System.out.printf("    %d                %d                %d               %d\n\n", analysisCounter, correct, inCorrect, blank);
 					// 
 					analysisCounter++;	
-			}
-			// breakdown and print the number and percentages of A,B,C,D,E and Blank answers per question
-			questionAnalysis(fileName, answerKey);
-		
+				}
 			}
 			catch (FileNotFoundException e) {
-				System.out.println("\nTrying to print student analysis...\nCould not find file \"" + fileName + "\". Please try again.\n");
+				System.out.println("\nTrying to print student analysis...\nCould not read file \"" + fileName + "\". Please try again.\n");
 			}
 		}
+		/**
+	    * This method takes the answer key and file of student answers 
+	    * as provided by user and prints a breakdown of each question
+	    *
+	    * @param   String fileName
+	    * @param   String  answerKey
+	    * @throws: FileNotFoundException If input file can't be read
+	    */	
 		public static void questionAnalysis(String fileName, String answerKey ) throws FileNotFoundException
 		{
 			try {
@@ -215,7 +250,7 @@ public class ExamAnalysis
 				}
 			}
 			catch (FileNotFoundException e) {
-				System.out.println("\nTrying to print question analysis...\nCould not find file \"" + fileName + "\". Please try again.\n");
+				System.out.println("\nTrying to print question analysis...\nCould not read file \"" + fileName + "\". Please try again.\n");
 			}
 		}
 
